@@ -3,46 +3,53 @@
 # Imports
 import os
 import socket
+import concurrent.futures
 
 # Possible vulnerable open ports
 ports = {20,21,22,23,25,53,137,139,445,80,443,8080,8443,3389,1433,1434,3306}
 
 # Port scan function
 def is_port_open(host, p):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Sets up the socket to connect
-    sock.settimeout(2)  # Set a timeout to avoid indefinite blocking
-    is_done = False 
     try:
-        # Checks to see if port is open
-        while is_done == False:
-            sock.connect((host, p))
-            sock.close()
-            is_done = False
-            # True if open
-            return True
-    # False if port not open 
-    except (socket.error, socket.timeout):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(1)  # Short timeout for faster scanning
+            if sock.connect_ex((host, p)) == 0:
+                return True
+    except socket.gaierror:
+        print(f"Error: Could not resolve hostname {host}")
         return False
+    except socket.error:
+        return False
+    return False
 
-    is_done == True
 
 # Main function
 def main():
     os.system('clear')
 
     # User input for IP/Website
-    host = input("IP: \n")
+    host = input("Enter IP or Domain: ")
 
-    # Check for each port in the list of ports
-    for p in ports:
-        is_port_open(host, p)
+    print(f"\nScanning {host}...\n")
 
-        # If returned true it will print the port thats open
-        if (is_port_open(host,p) == True):
-            print(f"Port {p} on {host} is open.\n")
+    ports_open = []
 
-        # Else if returned false it will print which port is closed
-        else:
-            print(f"Port {p} on {host} is closed.\n")
+    # Threads to run faster
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        results = {executor.submit(is_port_open, host, port): port for port in ports}
+        
+        for future in concurrent.futures.as_completed(results):
+            port = results[future]
+            if future.result():
+                ports_open.append(port)
+
+    # Print results
+    if ports_open:
+        print("\nOpen Ports Found:")
+        for port in ports_open:
+            print(f" - Port {port}\nService Name {socket.getservbyport(port)}\n")
+    else:
+        print("\nNo open ports detected.")
+
 
 main()
