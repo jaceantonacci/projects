@@ -1,6 +1,6 @@
-# Welcome to My Cyber Security Portfolio
+# Welcome to My Information Security Portfolio
 
-Hello i'm a Cyber Security student, and this repository serves as the hub for my learning journey and projects.
+Hello i'm a Information Security student, and this repository serves as the hub for my learning journey and projects.
 
 As I continue to build my skills, this repository will contain a variety of hands-on projects, tools, and resources I’ve created or contributed to. The focus will be on areas like:
 
